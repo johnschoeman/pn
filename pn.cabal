@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Lib
+      PN
   other-modules:
       Paths_pn
   hs-source-dirs:
@@ -37,6 +38,7 @@ library
     , base >=4.7 && <5
     , colour
     , data-default-class
+    , hspec
     , lens
     , time
   default-language: Haskell2010
@@ -54,6 +56,7 @@ executable pn-exe
     , base >=4.7 && <5
     , colour
     , data-default-class
+    , hspec
     , lens
     , pn
     , time
@@ -73,6 +76,7 @@ test-suite pn-test
     , base >=4.7 && <5
     , colour
     , data-default-class
+    , hspec
     , lens
     , pn
     , time

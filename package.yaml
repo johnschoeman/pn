@@ -27,6 +27,7 @@ dependencies:
 - data-default-class
 - time
 - Chart-cairo
+- hspec
 
 ghc-options:
 - -Wall
