@@ -1,156 +1,80 @@
-module PN (pnSucc, pnShow, pnNumbers, toDecimal, base) where
-
-import Data.List as List
+module PN (pnSucc, pnShow, pnNumbers, toDecimal, baseOf) where
 
 pnNumbers :: [[Int]]
-pnNumbers = [0] : [1] : [ pnSucc a | a <- tail pnNumbers]
-
-pnShow :: [Int] -> IO ()
-pnShow pn =
-  let
-    dec = toDecimal pn
-  in
-    print (show pn ++ " : " ++ show dec)
-
-primes :: [Int]
-primes = [2,3,5,7]
-
-toDecimal :: [Int] -> Int
-toDecimal pn =
-  let
-    a = zip primes (reverse pn)
-  in
-    foldl (\acc (p,n) -> acc * (p ^ n)) 1 a
+pnNumbers = [0] : [1] : [ pnSucc a | a <- tail pnNumbers ]
 
 pnSucc :: [Int] -> [Int]
 pnSucc xs = 
-   let
-     b = base xs
-   in
-     incrementPrime b xs
+  pnIncrement b (padZeros b xs)
+  where
+     b = baseOf xs
 
--- 1.1.0.1 -> 1.1.0.2
--- 1.3.3.3 -> 3.0.0.0
--- o:104 ...0.102.3.73.3 -> ...0.102.3.73.4
--- o:104 ...0.102.3.73.103 -> ...0.102.3.74.0
-addOneInBase :: Int -> [Int] -> [Int]
-addOneInBase o xs =
+baseOf :: [Int] -> Int
+baseOf xs =
   let
-    r = List.reverse xs
-    (zeros, rest) = break (< o) r
+    (_, pns) = break (> 0) xs
+    countPrimes = foldr (\_ -> (+) 1) 0 pns
+    maxPower = maximum (0:pns)
   in
-    case rest of
-      [] -> List.replicate o 0 ++ [o+1]
-      head:rs -> reverse (List.map (const 0) zeros ++ [head + 1] ++ rs)
+    max countPrimes maxPower
 
--- 0.4.1.4 -> 0.4.2.4
--- 0.1.4.4 -> 0.2.0.4
--- :104 ...0.1.104.2  -> ...0.1.104.3
-incrementPrime :: Int -> [Int] -> [Int]
-incrementPrime b xs =
-  -- if List.all (== o) xs then
-    -- 1 : List.replicate o 0
-  -- else
+padZeros :: Int -> [Int] -> [Int]
+padZeros b xs =
+  lastN b (replicate l 0 ++ xs)
+  where
+    l = b - length xs
+
+lastN :: Int -> [Int] -> [Int]
+lastN n xs =
+  drop (length xs - n) xs
+
+pnIncrement :: Int -> [Int] -> [Int]
+pnIncrement b xs =
     let
       next = addOneInBase b xs
     in
-      if base next >= b
+      if baseOf next >= b
         then next
-        else incrementPrime b next
+        else pnIncrement b next
 
-base :: [Int] -> Int
-base xs =
+addOneInBase :: Int -> [Int] -> [Int]
+addOneInBase b xs =
   let
-    (_, rest) = break (> 0) xs
-    len = foldr (\x -> (+) 1) 0 rest
-    maxP = maximum (0:rest)
+    (rollOvers, digits) = break (< b) (reverse xs)
   in
-    max len maxP
+    case digits of
+      [] -> replicate b 0 ++ [b+1]
+      h:ds -> reverse (map (const 0) rollOvers ++ [h + 1] ++ ds)
+
+---- 
+
+toDecimal :: [Int] -> Int
+toDecimal pn =
+  foldl (\acc (n,p) -> acc * (p ^ n)) 1 withPrimes
+  where
+    withPrimes = zip (reverse pn) primes
+
+primes :: [Int]
+primes = sieve [2..]
+  where
+    sieve [] = [2]
+    sieve (p:xs) = p : sieve [ x | x <- xs, x `mod` p > 0 ]
+
+pnShow :: [Int] -> [Char]
+pnShow pn =
+  show pn ++ " : " ++ show (toDecimal pn)
 
 -- {P} :: set of primes, 2 to P
 -- {N} :: set of powers, 0 to N
 -- |P| count of primes
--- |N| count of poweres == max N
+-- |N| count of powers == max N
 -- total size : |N|*|P|
 --
 -- Prime Notation : 
 -- [7's place].[5's place].[3's place].[2's place]
 -- 1.0.1.3 :: 7^1 * 5^0 * 3^1 * 2^3 == 168
 --
--- order :: min of (max power) and |P| 
-
--- p : { 2 } ; n : { 0 }
--- 0
--- 1
---
--- p : { 2 } ; n : { 0, 1 }
--- 0.1
--- 1.1
---
--- p : { 2, 3 } ; n : { 0, 1 }
--- 0.0
--- 1.0
--- 0.1
--- 1.1
---
--- p : { 2, 3 } ; n : { 0, 1, 2 }  
---
--- 0.0
--- 1.0
--- 2.0
--- 0.1
--- 1.1
--- 2.1
--- 0.2
--- 1.2
--- 2.2
---
--- 0.0
--- 0.1
--- 0.2
--- 1.0
--- 1.1
--- 1.2
--- 2.0
--- 2.1
--- 2.2
---
--- p : { 2, 3, 5 } ; n : { 0, 1, 2 }
--- 0.0.0 0.0.1 0.0.2
--- 1.0.0 1.0.1 1.0.2
--- 2.0.0 2.0.1 2.0.2
--- 0.1.0 0.1.1 0.1.2
--- 1.1.0 1.1.1 1.1.2
--- 2.1.0 2.1.1 2.1.2
--- 0.2.0 0.2.1 0.2.2
--- 1.2.0 1.2.1 1.2.2
--- 3.2.0 3.2.1 3.2.2
---
--- iterations --
--- i : p,n : size
--- 0 : 1,0 : 1
--- 1 : 1,1 : 2
--- 2 : 2,1 : 4
--- 3 : 2,2 : 9
--- 4 : 3,2 : 
--- 5 : 3,3
--- 6 : 4,3
--- 7 : 4,4
--- 8 : 5,4
--- 9 : 5,5
---
--- n odd,  (n+1)/2,(n+1)/2
--- n even, (n+2)/2,n/2
---
--- 2, 3
--- 0, 1, 2
--- 2^0*3^0  0.0
--- 2^1*3^0  0.1
--- 2^2*3^0  0.2
--- 2#0*3^0  1.0
---
--- 2, 3, 5
--- 0, 1, 2
+-- Base :: max of (max power) and |P
 
 -- pp sets
 -- prime,power
