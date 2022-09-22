@@ -1,34 +1,36 @@
 module PN (pnSucc, pnShow, pnNumbers, toDecimal, baseOf) where
 
-pnNumbers :: [[Int]]
+pnNumbers :: [[Integer]]
 pnNumbers = [0] : [1] : [ pnSucc a | a <- tail pnNumbers ]
 
-pnSucc :: [Int] -> [Int]
+pnSucc :: [Integer] -> [Integer]
 pnSucc xs = 
   pnIncrement b (padZeros b xs)
   where
      b = baseOf xs
 
-baseOf :: [Int] -> Int
+baseOf :: [Integer] -> Int
 baseOf xs =
   let
     (_, pns) = break (> 0) xs
+    countPrimes :: Int
     countPrimes = foldr (\_ -> (+) 1) 0 pns
-    maxPower = maximum (0:pns)
+    maxPower :: Int
+    maxPower = fromIntegral (maximum (0:pns))
   in
     max countPrimes maxPower
 
-padZeros :: Int -> [Int] -> [Int]
+padZeros :: Int -> [Integer] -> [Integer]
 padZeros b xs =
   lastN b (replicate l 0 ++ xs)
   where
     l = b - length xs
 
-lastN :: Int -> [Int] -> [Int]
+lastN :: Int -> [Integer] -> [Integer]
 lastN n xs =
   drop (length xs - n) xs
 
-pnIncrement :: Int -> [Int] -> [Int]
+pnIncrement :: Int -> [Integer] -> [Integer]
 pnIncrement b xs =
     let
       next = addOneInBase b xs
@@ -37,30 +39,30 @@ pnIncrement b xs =
         then next
         else pnIncrement b next
 
-addOneInBase :: Int -> [Int] -> [Int]
+addOneInBase :: Int -> [Integer] -> [Integer]
 addOneInBase b xs =
   let
-    (rollOvers, digits) = break (< b) (reverse xs)
+    (rollOvers, digits) = break (< toInteger b) (reverse xs)
   in
     case digits of
-      [] -> replicate b 0 ++ [b+1]
+      [] -> replicate b 0 ++ [toInteger b + 1]
       h:ds -> reverse (map (const 0) rollOvers ++ [h + 1] ++ ds)
 
 ---- 
 
-toDecimal :: [Int] -> Int
+toDecimal :: [Integer] -> Integer
 toDecimal pn =
   foldl (\acc (n,p) -> acc * (p ^ n)) 1 withPrimes
   where
     withPrimes = zip (reverse pn) primes
 
-primes :: [Int]
+primes :: [Integer]
 primes = sieve [2..]
   where
     sieve [] = [2]
-    sieve (p:xs) = p : sieve [ x | x <- xs, x `mod` p > 0 ]
+    sieve (p:xs) = p : sieve [ x | x <- xs, mod x p > 0 ]
 
-pnShow :: [Int] -> [Char]
+pnShow :: [Integer] -> [Char]
 pnShow pn =
   show pn ++ " : " ++ show (toDecimal pn)
 
