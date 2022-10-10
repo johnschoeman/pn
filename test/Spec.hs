@@ -5,9 +5,9 @@ main :: IO ()
 main = hspec $ do
   describe "PN.toDecimal" $ do
     it "returns the decimal representation of the number" $ do
-      toDecimal [1]         `shouldBe` 2.0
-      toDecimal [1,0,0,0,0] `shouldBe` 11.0
-      toDecimal [1,2,3]     `shouldBe` 360.0
+      toDecimal [1]         `shouldBe` 2
+      toDecimal [1,0,0,0,0] `shouldBe` 11
+      toDecimal [1,2,3]     `shouldBe` 360
 
   describe "PN.baseOf" $ do
     it "returns the correct base of the pn number" $ do
