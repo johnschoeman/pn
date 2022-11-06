@@ -1,52 +1,24 @@
-module PN (pnSucc, pnShow, pnNumbers, toDecimal, baseOf) where
+module PN (pnSucc, pnShow, pnNumbers, toDecimal) where
 
 pnNumbers :: [[Integer]]
 pnNumbers = [0] : [1] : [ pnSucc a | a <- tail pnNumbers ]
 
 pnSucc :: [Integer] -> [Integer]
-pnSucc xs = 
-  pnIncrement b (padZeros b xs)
-  where
-     b = baseOf xs
+pnSucc xs =
+  reverse $ pnSuccR (reverse xs)
 
-baseOf :: [Integer] -> Int
-baseOf xs =
-  let
-    (_, pns) = break (> 0) xs
-    countPrimes :: Int
-    countPrimes = foldr (\_ -> (+) 1) 0 pns
-    maxPower :: Int
-    maxPower = fromIntegral (maximum (0:pns))
-  in
-    max countPrimes maxPower
-
-padZeros :: Int -> [Integer] -> [Integer]
-padZeros b xs =
-  lastN b (replicate l 0 ++ xs)
-  where
-    l = b - length xs
-
-lastN :: Int -> [Integer] -> [Integer]
-lastN n xs =
-  drop (length xs - n) xs
-
-pnIncrement :: Int -> [Integer] -> [Integer]
-pnIncrement b xs =
-    let
-      next = addOneInBase b xs
-    in
-      if baseOf next >= b
-        then next
-        else pnIncrement b next
-
-addOneInBase :: Int -> [Integer] -> [Integer]
-addOneInBase b xs =
-  let
-    (rollOvers, digits) = break (< toInteger b) (reverse xs)
+pnSuccR :: [Integer] -> [Integer]
+pnSuccR xs = 
+  let 
+    baseInt = foldr (\_ -> (+) 1) 0 xs
+    b = toInteger baseInt
+    (rollOvers, digits) = break (< b) xs
+    len = foldr(\_ -> (+) 1) 0 rollOvers
   in
     case digits of
-      [] -> replicate b 0 ++ [toInteger b + 1]
-      h:ds -> reverse (map (const 0) rollOvers ++ [h + 1] ++ ds)
+      [] -> (b + 1) : replicate baseInt 0
+      h:ds | h == (b - 1) || len == (b - 1) -> map (const 0) rollOvers ++ [h + 1] ++ ds
+      h:ds -> rollOvers ++ [h + 1] ++ ds
 
 ---- 
 

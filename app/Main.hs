@@ -14,7 +14,7 @@ chart = toRenderable layout
     pns x = zip [1..] (asLog x)
 
     points = plot_points_style .~ filledCircles 2 (opaque red)
-              $ plot_points_values .~ pns 46656
+              $ plot_points_values .~ pns 1000
               $ plot_points_title .~ "am points"
               $ def
 
@@ -22,6 +22,6 @@ chart = toRenderable layout
            $ layout_plots .~ [toPlot points]
            $ def
 
-main = renderableToFile def "build/seq.png" chart
+-- main = renderableToFile def "build/seq.png" chart
 
--- main = print (map toDecimal (take 50 pnNumbers))
+main = print (map toDecimal (take 50 pnNumbers))
